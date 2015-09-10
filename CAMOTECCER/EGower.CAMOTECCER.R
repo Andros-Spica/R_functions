@@ -1,4 +1,4 @@
-EGower.CAMOTECCER<-function(data, var.set, out.file, d.type="d2",
+EGower.CAMOTECCER<-function(data, var.set, out.file, d.type="relative rank differences",
                           excep.col=NULL, excep.val=NULL, excep.dist = 0){
   # var.set is a list of sets of variables of different kind
   # d.type states the kind of distance/similarity index (d2:neighbour interexchange, petrography,
@@ -9,9 +9,9 @@ EGower.CAMOTECCER<-function(data, var.set, out.file, d.type="d2",
   
   # order factors
   
-  source(file="functions/CAMOTECCER/CAMOTECCERDATA.R")
+  source(file="R_functions/CAMOTECCER/CAMOTECCERDATA.R")
   
-  data <- CAMOTECCERDATA3(data)
+  data <- CAMOTECCERDATA.PETRO(data)
   
   # set exception values as NAs
   for (v in excep.col){
@@ -27,7 +27,7 @@ EGower.CAMOTECCER<-function(data, var.set, out.file, d.type="d2",
   ### Extended Gower with Exception
   
   require(ade4)
-  source(file="functions/CAMOTECCER/dist.ktab.CAMOTECCER.R")
+  source(file="R_functions/CAMOTECCER/dist.ktab.CAMOTECCER.R")
   data <- data.frame(data.matrix(data))
   
   # list separete variable sets
@@ -38,15 +38,15 @@ EGower.CAMOTECCER<-function(data, var.set, out.file, d.type="d2",
   ktab1 <- ktab.list.df(list.var.set)
   
   # calculate distance
-  if(d.type=="d2"){
+  if(d.type=="neighbor interchange"){
     
-    dist <- dist.ktab.CAMOTECCER(ktab1, type=c("O"), option = "scaledBYrange", scann=F, dist.excep = excep.dist, d.type="d2")
+    dist <- dist.ktab.CAMOTECCER(ktab1, type=c("O"), option = "scaledBYrange", scann=F, dist.excep = excep.dist, d.type="Protocol_2")
     
     write.csv(data.frame(as.matrix(dist)), file=out.file, row.names = TRUE) 
     
-  } else if(d.type=="d3"){
+  } else if(d.type=="relative rank differences"){
     
-    dist <- dist.ktab.CAMOTECCER(ktab1, type=c("O"), option = "scaledBYrange", scann=F, dist.excep = excep.dist, d.type="d3")
+    dist <- dist.ktab.CAMOTECCER(ktab1, type=c("O"), option = "scaledBYrange", scann=F, dist.excep = excep.dist, d.type="Protocol_3")
     
     if (is.euclid(dist)==F){
       # Lingoes transformation (1971)
@@ -56,9 +56,9 @@ EGower.CAMOTECCER<-function(data, var.set, out.file, d.type="d2",
     
     write.csv(data.frame(as.matrix(dist)), file=out.file, row.names = TRUE)
     
-  } else if(d.type=="d4"){
+  } else if(d.type=="mixed mode"){
     
-    dist <- dist.ktab.CAMOTECCER(ktab1, type=c("O","Q"), option = "scaledBYrange", scann=F, dist.excep = excep.dist, d.type="d4", weight=c(.5,.5))
+    dist <- dist.ktab.CAMOTECCER(ktab1, type=c("O","Q"), option = "scaledBYrange", scann=F, dist.excep = excep.dist, d.type="Protocol_4", weight=c(.5,.5))
     
     if (is.euclid(dist)==F){
       # Lingoes transformation (1971)

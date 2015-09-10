@@ -1,5 +1,5 @@
 plot.pcaCoDa.CAMOTECCER <- function(pca.list, factors.list, labels.list, arrow.lab.adj.list,test.list,
-                                    otype=c("png"),dtype="d1", file.names=c("ALL","AMP","UZB","TW"),
+                                    otype=c("png"),dtype="Protocol_1", file.names=c("ALL","AMP","UZB","TW"),
                                     Swidth=3000,Sheight=3000,Lwidth=3000,Lheight=3000,gxlim=list(NULL,NULL,NULL,NULL),gylim=list(NULL,NULL,NULL,NULL),
                                     gcex=3,lcex=3,rcex=1.5,tcex=2,glwd=2,llwd=3,rlwd=3,cstar=1,cellipse=1,clabel=0.5,cpoint=0.8,
                                     lfig=c(0.02,0.35,0.06,0.25),

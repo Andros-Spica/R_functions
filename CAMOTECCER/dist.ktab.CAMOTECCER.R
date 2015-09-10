@@ -1,7 +1,7 @@
 dist.ktab.CAMOTECCER <-
 
 function(x, type, option = c("scaledBYrange", "scaledBYsd", "noscale"),
-         scann = FALSE, dist.excep = 2, tol = 1e-8, d.type="d2", weight=NULL) {
+         scann = FALSE, dist.excep = 2, tol = 1e-8, d.type="Protocol_2", weight=NULL) {
 
 
 
@@ -17,9 +17,9 @@ function(x, type, option = c("scaledBYrange", "scaledBYsd", "noscale"),
 
          stop("x is not an object of class ktab")
 
-     if(any(is.na(match(type, c("Q", "O", "N", "D", "F", "B", "C")))))
+     if(any(is.na(match(type, c("Q", "O", "N", "D", "F", "B", "C","CODA")))))
 
-         stop("incorrect type: available values for type are O, Q, N, D, F, B and C")
+         stop("incorrect type: available values for type are O, Q, N, D, F, B, C and CODA")
 
      if(length(x$blo)!=length(type))
 
@@ -172,7 +172,7 @@ self-similarity\n")
 
 
      else{
-       if(d.type=="d2"){
+       if(d.type=="Protocol_2"){
          methodO <- 2
        } else {
          methodO <- 1
@@ -1925,7 +1925,62 @@ self-similarity\n")
 
          }
 
-
+         
+         #*****************************************************#
+         
+         # Compositional data                                        #
+         
+         #*****************************************************#
+         
+         
+         if(type[i] == "CODA"){
+           
+           #*****************************************************#
+           
+           # Data are checked                                    #
+           
+           #*****************************************************#
+           
+           
+           
+           df <- x[[i]]
+           
+           df2 <- cbind.data.frame(df[, apply(df, 2, function(u) !all(is.na(u)))])
+           
+           if(ncol(df2) == 0) stop("one of the quantitative data frames is full of NA")
+           
+           if(ncol(df) != ncol(df2)){
+             
+             warning("a column full of NA in the quantitative or ordinal data set ", i)
+             
+             df <- as.data.frame(df2)
+             
+           }
+           
+           if(!all(unlist(lapply(df, is.numeric))))
+             
+             stop("Incorrect definition of the quantitative variables")
+           
+           
+           
+           #*****************************************************#
+           
+           
+           pca <- best.pcaCoDa(df, init.seed=0, samples=1000)
+           
+           thedis <- 
+           
+           thedis[thedis < tol] <- 0
+           
+           nbvar <- ncol(x[[i]])
+           
+           if(napres){
+             
+             ntvar <- matrix(ncol(df), nrow(df), nrow(df))
+             
+           }
+           
+         }
 
          if(!napres)
 

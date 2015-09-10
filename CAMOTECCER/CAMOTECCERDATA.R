@@ -1,14 +1,17 @@
-CAMOTECCERDATA1 <- function(data, complete=TRUE, asNa=c("NULL"), method="random", outliers=c("outlier"), hist=FALSE){
+CAMOTECCERDATA1 <- function(data, catVars, numVars, complete=TRUE,
+                            asNa=c("NULL"), method="random",
+                            excludeVars=c("variable to exclude"),
+                            outliers=c("outlier")){
   
   # "data" is a data frame
   # "complete" is the boolean indicating if output needs to have the petrological characterization complete
   # "hist" is the boolean indicating if histograms should be created
   
-  source(file="functions/histThemAll.R")
-  source(file="functions/replaceNas.R")
+  source(file="R_functions/histThemAll.R")
+  source(file="R_functions/replaceNas.R")
   
-  # numerical data
-  for (v in 122:147){
+  # format numerical data
+  for (v in numVars){
     data[,v] <- as.numeric(as.character(data[,v]))
   }
   
@@ -24,15 +27,20 @@ CAMOTECCERDATA1 <- function(data, complete=TRUE, asNa=c("NULL"), method="random"
   
   # replace Nas
   ## categorical data
-  for (v in 1:121){
+  for (v in catVars){
     for (i in 1:length(asNa)){
       data[,v] <- replaceNas(data[,v], type="categorical", asNa=asNa[i], method=method)
     }
   }
   
   ## numerical data
-  for (v in 122:147){
+  for (v in numVars){
     data[,v] <- replaceNas(data[,v], type="numerical", method=method)
+  }
+  
+  # exclude variables in "excludeVars"
+  for (i in excludeVars){
+    data <- data[,names(data)!=i]
   }
   
   # filter constant variables
@@ -44,31 +52,27 @@ CAMOTECCERDATA1 <- function(data, complete=TRUE, asNa=c("NULL"), method="random"
   }
   data <- data[,-out]
   
-  # take out "COAR_R_EVAP"
-  data <- data[,names(data)!="COAR_R_EVAP"]
-  # take out "COAR_R_EVAP"
-  data <- data[,names(data)!="COAR_R_CONGBREC"]
-  # take out "COAR_R_EVAP"
-  data <- data[,names(data)!="COAR_R_SERP"]
-  
-  if (hist==TRUE){
-    if (version==1){
-      # v1
-      data2 <- data[,c(-1)]
-    } else if (version==2){
-      # v2
-      data2 <- data[,c(-1,-2,-3)]
-    } else if (version==3){
-      data2 <- data
-    }
-    # plots
-    histThemAll(data2, outType="png")
-  }
-  
   return(data)
 }
 
 CAMOTECCERDATA2 <- function(data){
+  
+  # arrange levels of period and functional category
+  ord.per = c("Early Roman Empire" ,
+              "Hellenistic Period",
+              "Yuezhi Period",
+              "Kushan Period",
+              "Kushan-Sassanid Period",
+              "Pre-Mongol Period - Turkic Dynasties")
+  ord.fctcat <- c("table ware","common ware","cooking ware",
+                  "storage vessel","transport storage vessel", "illumination")
+  
+  if ("PERIOD_NAME" %in% names(data)){
+    data$PERIOD_NAME <-factor(data$PERIOD_NAME, levels=ord.per)
+  }
+  if ("FUNCTION_CAT" %in% names(data)){
+    data$FUNCTION_CAT <-factor(data$FUNCTION_CAT, levels=ord.fctcat)
+  }
   
   # generate tags 1:(site x period x function) 2:(FABRIC x function)
   tag1 <- vector()
@@ -202,17 +206,22 @@ CAMOTECCERDATA2 <- function(data){
   return(data)
 }
 
-CAMOTECCERDATA3 <- function(data){
+CAMOTECCERDATA.CLASSLEVELS <- function(data){
+  ### loose empty levels in subsetted data
+  
+  data$tag1 <- factor(data$tag1)
+  data$tag2 <- factor(data$tag2)
+  data$label <- factor(data$label)
+  data$star <- factor(data$star)
+  data$star2 <- factor(data$star2)
+  data$star3 <- factor(data$star3)
+  
+  return(data)
+}
+
+CAMOTECCERDATA.PETRO <- function(data){
   
   ### put values in proper order
-  ord.per = c("Early Roman Empire" ,
-              "Hellenistic Period",
-              "Yuezhi Period",
-              "Kushan Period",
-              "Kushan-Sassanid Period",
-              "Pre-Mongol Period - Turkic Dynasties"
-  )
-  ord.fctcat <- c("table ware","common ware","cooking ware", "storage vessel","transport storage vessel", "illumination")
   
   ord.yni<-c("yes", "no")
   ord.clay<-c("Ca-rich", "Fe to Ca-rich", "Fe-rich")
@@ -230,13 +239,6 @@ CAMOTECCERDATA3 <- function(data){
   ord.spac<-c("single-spaced","single to double-spaced","double-spaced","double to open-spaced","open-spaced","none")
   ord.sort<-c("well-sorted","moderately to well-sorted","moderately-sorted","poorly to moderately-sorted","poorly-sorted", "none")
   ord.grain2<-c("none","very fine silt","very fine to fine silt","fine silt","fine to medium silt","medium silt","medium to coarse silt","coarse silt","coarse silt to very fine sand")
-  
-  if ("PERIOD_NAME" %in% names(data)){
-    data$PERIOD_NAME <-factor(data$PERIOD_NAME, levels=ord.per)
-  }
-  if ("FUNCTION_CAT" %in% names(data)){
-    data$FUNCTION_CAT <-factor(data$FUNCTION_CAT, levels=ord.fctcat)
-  }
   
   if ("CLAY" %in% names(data)){
     data$CLAY <-factor(data$CLAY, levels=ord.clay)
@@ -551,4 +553,77 @@ CAMOTECCERDATA3 <- function(data){
   
   return(data)
 }
-    
+
+CAMOTECCERDATA.CHEMCOMP <- function(data, vars, method=NULL, base=1,
+                                    raw.filename=NULL, trans.filename=NULL,
+                                    final.filename=NULL){
+  require(robCompositions)
+  data.chem <- c()
+  for (i in vars){
+    data.chem <- cbind(data.chem,data[,names(data)==i])
+  }
+  data.chem <- data.frame(data.chem)
+  row.names(data.chem) <- row.names(data)
+  names(data.chem)<-vars
+  
+  # closure (rows to constant sum)
+  data.chem <- constSum(data.chem,const=100)
+  
+  if (is.null(raw.filename)==F){
+    write.csv(data.chem, file=raw.filename, row.names = TRUE)
+  }
+  data.chem.trans.all <- c()
+  if (!is.null(method)){
+    for (trans in method){
+      if (is.null(trans)==F){
+        if (trans=="std"){
+          data.chem.trans <- scale(data.chem)
+          dimnames(data.chem.trans)[[2]]<-paste("std-",dimnames(data.chem.trans)[[2]],sep="")
+        }
+        if (trans=="ALR"){
+          data.chem.trans <- addLR(data.chem, base)
+          data.chem.trans <- data.frame(data.chem.trans$x.alr)
+          names(data.chem.trans)<-paste("ALR-",names(data.chem.trans),sep="")
+        }
+        if (trans=="CLR"){
+          data.chem.trans <- cenLR(data.chem)
+          data.chem.trans <- data.frame(data.chem.trans$x.clr)
+          names(data.chem.trans)<-paste("CLR-",names(data.chem.trans),sep="")
+        }
+        if (trans=="ILR"){
+          data.chem.trans <- data.frame(isomLR(data.chem))
+          names(data.chem.trans)<-gsub("X","ILR-",names(data.chem.trans))
+        }
+        
+        data.chem.trans.all <- cbind(data.chem.trans.all,data.chem.trans)
+        if (is.null(trans.filename)==F){
+          write.csv(data.chem.trans, file=trans.filename, row.names = TRUE)
+        }
+      }
+    }
+    data <- data[,!(names(data) %in% names(data.chem))]
+    data <- cbind(data, data.chem, data.chem.trans.all)
+  } else {
+    data <- data[,!(names(data) %in% names(data.chem))]
+    data <- cbind(data, data.chem)
+  }
+  
+  
+  
+  if (is.null(final.filename)==F){
+    write.csv(data, file=final.filename, row.names = TRUE)
+  }
+  
+  return(data)
+  
+}
+
+buildOrthBasis <- function(x){
+  V <- matrix(0, nrow=ncol(x), ncol=ncol(x)-1)
+  for( i in 1:ncol(V) ){
+    V[1:i,i] <- 1/i
+    V[i+1,i] <- (-1)
+    V[,i] <- V[,i]*sqrt(i/(i+1))
+  }
+  return(V)
+}

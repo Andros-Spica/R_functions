@@ -43,9 +43,9 @@ plotSensAnalysis <- function(data, obsVar, legVar=NULL, layout=.~parameter, mode
     data <- cbind(data,annData)
     data <- data.frame(data)
   } else {
-    x <- rep(0,1000)
-    y <- rep(0,1000)
-    annLabs <- rep('',1000)
+    x <- rep(0,nrow(data))
+    y <- rep(0,nrow(data))
+    annLabs <- rep('',nrow(data))
     data <- cbind(data,annLabs,x,y)
     data <- data.frame(data)
   }

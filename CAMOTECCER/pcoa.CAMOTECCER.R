@@ -6,7 +6,8 @@ pcoa.CAMOTECCER<-function(dist,data){
   pcoa$sub<-paste(as.character(100*round(sum(pcoa$GOF),digits=4)),"% of variance explained",sep="")
   
   # calculate covariance axis vs. variables
-  dt <- CAMOTECCERDATA3(data)
+  source(file="R_functions/CAMOTECCER/CAMOTECCERDATA.R")
+  dt <- CAMOTECCERDATA.PETRO(data)
   dt <- data.frame(data.matrix(data))
   transrank <- function(u){
     

@@ -13,7 +13,7 @@ nmds.CAMOTECCER<-function(dist, data, k=2,trymax=100, init.seed=0, autotransform
   }
   dt <- apply(dt, 2, transrank)
   
-  covmat<-cov(cbind(dt,nmds$points),use="complete.obs") 
+  covmat<-cov(cbind(dt,nmds$points),use="complete.obs")  
   nmds$loadings<-covmat[1:ncol(data),c(ncol(data)+1,ncol(data)+2)]
   dimnames(nmds$loadings)[[2]]<-c("MDS1","MDS2")
   
@@ -21,7 +21,7 @@ nmds.CAMOTECCER<-function(dist, data, k=2,trymax=100, init.seed=0, autotransform
   library(stringr)
   vcod <- vector()
   for (i in 1:nrow(nmds$loadings)){
-    for (i in 1:nrow(pcoa$loadings)){
+    for (i in 1:nrow(nmds$loadings)){
       if(names(data)[i]=="INCLUS_DISTRIB" | names(data)[i]=="INCLUS_ORIENT"){
         vcod[i]<-paste("I",i,sep="")
       } else if(names(data)[i]=="TEMP" | names(data)[i]=="ATM" | names(data)[i]=="POST_ATM"){
